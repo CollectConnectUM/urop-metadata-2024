@@ -1,4 +1,0 @@
-chess
-timeout-decorator
-jupyter
-
