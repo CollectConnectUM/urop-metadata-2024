@@ -31,9 +31,11 @@ from dataclasses import dataclass
 #@dataclass
 works_list = []
 works_list_japanese = []
+works_list_hindi = []
 unique_works = []
-total_num_of_works = 0
+# total_num_of_works = 0
 
+#FIXED: Input & Total_num_works
 class Work:
     def __init__(self, htid, access, rights, ht_bib_key, description, source,
                  source_bib_num, oclc_num, isbn, issn, lccn, title, imprint,
@@ -80,15 +82,15 @@ class Work:
     #title 11
     #pub place 17
     # lang 18
-#inp = input('STATEMENT')
+# my_file = input("Enter file name: ") 
+#  open(my_file, "r") 
 def parse(file):
-    #TODO: add user input for file name
-    # inp = input('STATEMENT')
-    #global total_num_of_works
-    total_num_of_works = 0
+    #TODO: (DONE) add user input for file name
+    # total_num_of_works = 0
+    i = 0
     # file = input('What is the metadata file you wish to clean?\n')
-    print("Username is: " + file)
-    f = open('output.txt', 'w')
+    #print("Username is: " + file)
+    f = open('newFile.txt', 'w')
     with open(file) as input:
         lines = input.readlines() # list containing lines of file
         for line in lines:
@@ -101,14 +103,19 @@ def parse(file):
                         elem[14], elem[15], elem[16], elem[17], elem[18],elem[19],elem[20], 
                         elem[21],elem[22],elem[23],elem[24],elem[25], False) #replace False with isDupe() func
             works_list.append(work)
-            total_num_of_works += 1
-            if (work.lang == 'jpn'):
-                f.write(str(line)) #to test if it actually writes
-                works_list_japanese.append(work) #list of japanese works
-            # print(i)
+            work.isDuplicate = i
+            i+=1
+            #print(total_num_of_works)
+            #total_num_of_works += 1
+            # if (work.lang == 'hin'):
+            #     f.write(str(line)) #to test if it actually writes
+            #     works_list_hindi.append(work) #list of hindi works
+            # # print(i)
             # i = i + 1
             #bucketing
             #line.split('\t') is used for splitting by tabs
+    # print(len(works_list_hindi))
+    # total_num_of_works = len(works_list)
     f.close()
     
     
@@ -179,12 +186,54 @@ def isDupe(work1, work2):
     else: 
         return False
 
-def printUniqueList(list, num_unique):
+#TODO: print in original metadata form (not just author/title)
+def printUniqueList(list, num_unique, total_num_of_works):
     f = open("Unique_works_gpt.txt", "w")
     #total_num_works is not working correctly
-    f.write("From " + str(total_num_of_works) + " to " + str(num_unique) + '\n')
+    #print(total_num_of_works)
+    list.sort(key=lambda x: (x.isDuplicate)) #sort based on index in original list
+    f.write("From " + str(total_num_of_works) + " to " + str(num_unique) + ' works.\n')
     for n in range(len(list)):
-        f.write(list[n].author + '\t' + list[n].title + '\n')
+        # print(list[n].htid)
+        #in progress
+        #f.write(list[n].htid + '\t' + list[n].access + '\t' + list[n].rights + '\t' + list[n].ht_bib_key + '\t' + list[n].description '\t' + list[n].source + '\n')
+    # for n in range(len(list)):
+         f.write(list[n].author + '\t' + list[n].title + '\n')
+
+
+def removeDupe(list, unique):
+    #unique.append(list[0])  # The first element is guaranteed to be unique
+    list.sort(key=lambda x: (x.author, x.title))  # Sort the list based on author and title
+    
+    # Iterate through the sorted list and compare adjacent works
+    num = 0
+    for i in range(0, len(list)):
+        # print(num)
+        num+=1
+        if not isDupe(list[i], list[i - 1]):
+            unique.append(list[i])
+    num_unique = len(unique)
+    #print(num_unique)
+    total_num_of_works = len(works_list)
+    #print(total_num_of_works)
+    printUniqueList(unique, num_unique, total_num_of_works)
+
+def main():
+    my_file = input("Enter file name: ") 
+    parse(my_file)
+    removeDupe(works_list, unique_works)
+    
+    #TODO: (DONE) add output saying how many duplicates/works left
+    #parse
+    #bucket
+    #output
+
+if __name__ == "__main__":
+    main()
+
+
+
+
 
 # def removeDupe(list, unique): #list is a list of all works (duplicates included), list2 is an empty list of unique works
 #     unique.append(list[0]) #the first is guaranteed to be unique
@@ -226,30 +275,3 @@ def printUniqueList(list, num_unique):
 #     return
 
 
-def removeDupe(list, unique):
-    #unique.append(list[0])  # The first element is guaranteed to be unique
-    list.sort(key=lambda x: (x.author, x.title))  # Sort the list based on author and title
-    
-    # Iterate through the sorted list and compare adjacent works
-    num = 0
-    for i in range(0, len(list)):
-        print(num)
-        num+=1
-        if not isDupe(list[i], list[i - 1]):
-            unique.append(list[i])
-
-    num_unique = len(unique)
-    printUniqueList(unique, num_unique)
-
-def main():
-    file = input('What is the metadata file you wish to clean?\n')
-    parse(file)
-    removeDupe(works_list, unique_works)
-    
-    #TODO: add output saying how many duplicates/works left
-    #parse
-    #bucket
-    #output
-
-if __name__ == "__main__":
-    main()
