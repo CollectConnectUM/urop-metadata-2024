@@ -5,7 +5,25 @@ import IPython
 from IPython.display import display
 import pandas as pd
 from fuzzywuzzy import fuzz 
-#API-KEY: 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
+import openai
+
+client = openai.OpenAI(api_key="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")
+
+def formatting(response):
+    response = response[161:]
+    for index, char in enumerate(response):
+        if response[index:index + 4] == "role":
+            response = response[:index - 3]
+            break
+    return response
+
+def AIGeneration(chat_prompt):
+    response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": chat_prompt}]
+    )
+    response = str(response)
+    return response
 
 '''''''''''''''''''''
 Class Declaration
@@ -42,7 +60,7 @@ class Work:
                  rights_reason_code, rights_timestamp, us_gov_doc_flag,
                  rights_date_used, pub_place, lang, bib_fmt, collection_code,
                  content_provider_code, responsible_entity_code,
-                 digitization_agent_code, access_profile_code, author, isDuplicate):
+                 digitization_agent_code, access_profile_code, author, isDuplicate, index):
         self.htid = htid
         self.access = access
         self.rights = rights
@@ -71,9 +89,37 @@ class Work:
         self.author = author
 
         self.isDuplicate = isDuplicate
+        self.index = index
 
     #print(p)  # Point(x=1.5, y=2.5, z=0.0)
-
+    def print_work(self) -> str:
+        all = str(self.htid + '\t' +
+        self.access + '\t' +
+        self.rights + '\t' +
+        self.ht_bib_key + '\t' +
+        self.description + '\t' +
+        self.source + '\t' +
+        self.source_bib_num + '\t' +
+        self.oclc_num + '\t' +
+        self.isbn + '\t' +
+        self.issn + '\t' +
+        self.lccn + '\t' +
+        self.title + '\t' +
+        self.imprint + '\t' +
+        self.rights_reason_code + '\t' +
+        self.rights_timestamp + '\t' +
+        self.us_gov_doc_flag + '\t' +
+        self.rights_date_used + '\t' +
+        self.pub_place + '\t' +
+        self.lang + '\t' +
+        self.bib_fmt + '\t' +
+        self.collection_code + '\t' +
+        self.content_provider_code + '\t' +
+        self.responsible_entity_code + '\t' +
+        self.digitization_agent_code + '\t' +
+        self.access_profile_code + '\t' +
+        self.author)
+        return all
     #AI
 
     #parse data
@@ -101,7 +147,7 @@ def parse(file):
             work = Work(elem[0], elem[1], elem[2], elem[3], elem[4], elem[5], elem[6], 
                         elem[7], elem[8], elem[9], elem[10], elem[11], elem[12], elem[13],
                         elem[14], elem[15], elem[16], elem[17], elem[18],elem[19],elem[20], 
-                        elem[21],elem[22],elem[23],elem[24],elem[25], False) #replace False with isDupe() func
+                        elem[21],elem[22],elem[23],elem[24],elem[25], False, i) #replace False with isDupe() func
             works_list.append(work)
             work.isDuplicate = i
             i+=1
@@ -188,19 +234,20 @@ def isDupe(work1, work2):
 
 #TODO: print in original metadata form (not just author/title)
 def printUniqueList(list, num_unique, total_num_of_works):
-    f = open("Unique_works_gpt.txt", "w")
+    f = open("Unique_gpt.txt", "w")
     #total_num_works is not working correctly
     #print(total_num_of_works)
-    list.sort(key=lambda x: (x.isDuplicate)) #sort based on index in original list
+    #list.sort(key=lambda x: (x.isDuplicate)) #sort based on index in original list
     f.write("From " + str(total_num_of_works) + " to " + str(num_unique) + ' works.\n')
-    for n in range(len(list)):
+    list.sort(key=lambda x: (x.index))
+    for n in list:
         # print(list[n].htid)
         #in progress
-        #f.write(list[n].htid + '\t' + list[n].access + '\t' + list[n].rights + '\t' + list[n].ht_bib_key + '\t' + list[n].description '\t' + list[n].source + '\n')
+        f.write(n.print_work())
     # for n in range(len(list)):
-         f.write(list[n].author + '\t' + list[n].title + '\n')
+        #f.write(list[n].author + '\t' + list[n].title + '\n')
 
-
+#BY TITLE
 def removeDupe(list, unique):
     #unique.append(list[0])  # The first element is guaranteed to be unique
     list.sort(key=lambda x: (x.author, x.title))  # Sort the list based on author and title
@@ -212,16 +259,61 @@ def removeDupe(list, unique):
         num+=1
         if not isDupe(list[i], list[i - 1]):
             unique.append(list[i])
+        #print(unique[i])
     num_unique = len(unique)
     #print(num_unique)
     total_num_of_works = len(works_list)
     #print(total_num_of_works)
     printUniqueList(unique, num_unique, total_num_of_works)
 
+#BY AUTHOR
+
+chat_prompt = """I have the author and a list of works by the author. There may be identical
+                 works with diferent names, signify any identical works with parenthesis and a number 
+                 inside. For example, if two works are the same, put a (1) at the end of all identical works. I.e: "Robinson Crusoe (1)" and
+                 "The Life and Strange Surprizing Adventures of Robinson Crusoe, of York, Mariner(1)", Output
+                 in the same format as the input but with indicators of identical works added to it.
+                 Here is the author and the list of their works: """
+
+def remove_duplicates2(works):
+    f = open("parse-test.txt", "w")
+    unique_works = {}
+    for work in works:
+        author, title = work.split(":")
+        author = author.strip()
+        title = title.strip()
+        
+        if author not in unique_works:
+            unique_works[author] = {title}
+        else:
+            unique_works[author].add(title)
+    for author, titles in unique_works.items():
+        f.write(f"{author}: {titles}\n") 
+        output = formatting(AIGeneration(chat_prompt + str(author) + ", " + str(titles)))
+        print(output)
+    return 
+
+
 def main():
     my_file = input("Enter file name: ") 
     parse(my_file)
     removeDupe(works_list, unique_works)
+    # testingworks = [
+    # "J.K. Rowling: Harry Potter and the Philosopher's Stone",
+    # "J.K. Rowling: Harry Potter and the Sorcerer's Stone",
+    # "J.K. Rowling: Harry Potter and the Chamber of Secrets",
+    # "J.R.R. Tolkien: The Hobbit",
+    # "J.R.R. Tolkien: The Lord of the Rings",
+    # "Mark Twain: The Adventures of Tom Sawyer",
+    # "Mark Twain: The Adventures of Huckleberry Finn",
+    # "Mark Twain: The Adventures of Huckleberry Finn",
+    # "Mark Twain: The Adventures of Huckleberry Finn",
+    # "Mark Twain: The Adventures of Huckleberry Finn",
+    # "Mark Twain: The Adventures of Huckleberry Finn",
+    # "Daniel Defoe: Robinson Crusoe",
+    # "Daniel Defoe: The Life and Strange Surprizing Adventures of Robinson Crusoe, of York, Mariner",
+    # ]
+    # remove_duplicates2(testingworks)
     
     #TODO: (DONE) add output saying how many duplicates/works left
     #parse
