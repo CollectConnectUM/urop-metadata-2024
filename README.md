@@ -11,3 +11,6 @@ The project aims to foster transparency and collaboration by making the program 
 
 # Project Scope
 The scope of the current project is to identify and eliminate duplicates within the dataset, focusing on ensuring uniqueness based on author, title, and publication date. By accomplishing this task, searching and retrieval of unique works within an online database will become more efficient for researchers. Future plans for the project involve the incorporation of additional metadata fields, such a work’s subject fields, and addressing transliteration challenges for non-Western works. These objectives serve as potential next steps for the project. Incorporating subject fields will primarily occur during the removal of duplicates of the project. The idea is that if two identical works have different metadata, the differences between them will be added to the “master list”, enriching the metadata fields for that specific work. Tackling the transliteration problem will include reverse engineering Roman scripts back into their native language, which will aid researchers conducting research on non-western works.
+
+[Presentation (1).pdf](https://github.com/user-attachments/files/16789235/Presentation.1.pdf)
+
