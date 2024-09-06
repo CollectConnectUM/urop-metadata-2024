@@ -1,4 +1,4 @@
-### Metadata Project Proposal ([UROP 2024 Blue Ribbon Award]([url](https://lsa.umich.edu/urop/symposium/spring-symposium/blue-ribbon-winners-.html)))
+### Metadata Project Proposal ([UROP Spring 2024 Blue Ribbon Award](https://lsa.umich.edu/urop/symposium/spring-symposium/blue-ribbon-winners-.html)))
 
 # Project Introduction
 The motivation behind this project stems from the observed disparity in the representation of non-Western language works within online databases.  Inadequacy in the metadata associated with these works leads to incomplete search results, particularly noticeable when searching for works by authors from regions such as Southeast Asia. This deficiency not only harms a researchers' ability to access certain works, but also reflects a broader societal issue of unequal treatment of non-Western authors. The primary target audience for this project includes researchers who utilize HathiTrust and similar online databases. The project aims to address the problem of fragmented metadata by consolidating identical works with varying metadata into a unified and comprehensive format.
